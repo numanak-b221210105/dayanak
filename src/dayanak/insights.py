@@ -63,6 +63,21 @@ def compute(store: Store, days: int = 14) -> Insights:
         )
         for r in rows[:12]
     ]
+    verdicts = {"verified": 0, "partial": 0, "unverified": 0, "abstained": 0}
+    for r in rows:
+        g = r["groundedness"]
+        key = (
+            "abstained"
+            if r["abstained"]
+            else "verified"
+            if g is not None and g >= 0.999
+            else "unverified"
+            if not g
+            else "partial"
+        )
+        verdicts[key] += 1
+    modes = dict(Counter(r["mode"] for r in rows))
+
     return Insights(
         total=total,
         answered=total - abstained,
@@ -75,6 +90,8 @@ def compute(store: Store, days: int = 14) -> Insights:
         by_day=by_day,
         top_docs=top_docs,
         gaps=gaps,
+        verdicts=verdicts,
+        modes=modes,
         recent=recent,
     )
 

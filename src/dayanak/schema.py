@@ -101,4 +101,6 @@ class Insights(BaseModel):
     by_day: list[DayCount]
     top_docs: list[DocCount]
     gaps: list[Gap] = Field(description="Belgelerde cevabı bulunamayan sorular: eksik doküman sinyali")
+    verdicts: dict[str, int] = Field(description="verified / partial / unverified / abstained dağılımı")
+    modes: dict[str, int] = Field(description="Cevap modlarının kullanım sayısı")
     recent: list[QueryLog]

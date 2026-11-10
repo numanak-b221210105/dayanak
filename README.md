@@ -28,23 +28,34 @@ The LLM claimed the daily meal limit is 1,000 TL. The cited passage says 750 TL,
 
 | | |
 |---|---|
-| **Ask** | Footnoted answers: every sentence links to its passage; sources listed like a bibliography with the supporting sentences highlighted. A verification badge shows how many sentences were confirmed, with per-sentence reasons on demand. |
+| **Ask** | Footnoted answers: every sentence links to its passage. On wide screens the sources sit beside the answer as **margin notes**, Tufte-style; hovering a footnote lights up the sentence and its note together. A verification ring shows how many sentences were confirmed, with per-sentence reasons on demand. |
+| **Related questions** | One-click follow-ups built from the sections that were retrieved but not used in the answer. |
 | **Scope** | Restrict a question to selected documents ("ask only the security policy"). |
-| **Reader** | Open any source in a full document view with an outline of its sections and the cited passage highlighted. |
-| **Search** | Passage-level search with document filters and visible BM25 / vector scores, so you can see *why* a passage was found. |
-| **Insights** | Questions over time, average grounding, abstention rate, most-cited documents and — most useful for a company — **knowledge gaps**: questions your documents could not answer, grouped and counted. |
-| **Feedback & export** | Thumbs up/down per answer (feeds Insights); export a conversation to Markdown with proper footnotes. |
+| **Reader** | Full document view with a section outline, the cited passage highlighted, and **key facts**: the rules in the document that contain numbers, one click away. |
+| **Search & command palette** | Passage-level search with document filters and visible BM25 / vector scores. `Ctrl+K` opens a palette that finds actions, conversations, saved answers and passages as you type. |
+| **Saved answers** | Bookmark answers with their sources and verification; they stay in the browser. |
+| **Voice, print, export** | Ask by voice and have answers read aloud (Web Speech API, Turkish); print a single answer as a one-page memo with footnotes (or save it as PDF); export a conversation to Markdown. |
+| **Insights** | Questions over time, average grounding, abstention rate, a verification breakdown, answer-mode usage, most-cited documents and — most useful for a company — **knowledge gaps**: questions your documents could not answer, grouped and counted. |
+| **Feedback** | Thumbs up/down per answer, fed into Insights. |
 | **Settings** | Default mode, number of sources per answer, theme, language, LLM connection status and data reset. |
 
-Conversations persist in the browser; the query log lives in the same SQLite file as the documents. The UI is a single dependency-free HTML file with an editorial look (serif headings, footnotes, warm paper tones), light and dark themes, Turkish and English, keyboard shortcuts (`Ctrl+K` search, `Alt+N` new chat, `/` focus) and a mobile layout.
+Conversations persist in the browser; the query log lives in the same SQLite file as the documents. The UI is a single dependency-free HTML file with an editorial look (serif headings, footnotes, warm paper tones) and restrained motion: answers are typeset word by word, the verification ring sweeps in, cited quotes are highlighted with a marker stroke, numbers count up. It has light and dark themes, Turkish and English, drag-and-drop anywhere, keyboard shortcuts (`Ctrl+K`, `/`, `Alt+N`, `Alt+1…6`, `?`), a mobile layout, and it respects `prefers-reduced-motion`.
 
-| Search with visible scores | Document reader |
+| Command palette | Document reader with key facts |
 |---|---|
-| ![Search](docs/search.jpg) | ![Reader](docs/reader.jpg) |
+| ![Command palette](docs/palette.jpg) | ![Reader](docs/reader.jpg) |
 
-| Dark mode | Settings |
+| Search with visible scores | Saved answers |
 |---|---|
-| ![Dark](docs/screenshot-dark.jpg) | ![Settings](docs/settings.jpg) |
+| ![Search](docs/search.jpg) | ![Saved](docs/saved.jpg) |
+
+| Dark mode | Printable memo |
+|---|---|
+| ![Dark](docs/screenshot-dark.jpg) | ![Memo](docs/memo.jpg) |
+
+| Knowledge base | Settings |
+|---|---|
+| ![Home](docs/home.jpg) | ![Settings](docs/settings.jpg) |
 
 ## How it works
 

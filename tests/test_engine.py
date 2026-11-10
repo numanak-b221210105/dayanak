@@ -99,3 +99,5 @@ def test_queries_are_logged_and_insights_find_gaps(engine):
     assert ins.gaps[0].count == 2  # aynı soru farklı yazımla gruplanır
     assert ins.top_docs[0].name == "izin-politikasi.md"
     assert ins.by_day[-1].count == 3
+    assert ins.verdicts == {"verified": 1, "partial": 0, "unverified": 0, "abstained": 2}
+    assert ins.modes == {"extractive": 3}
