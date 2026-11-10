@@ -68,11 +68,15 @@ class Index:
         self.chunks = chunks
         self.bm25 = BM25(chunks)
 
-    def search(self, query: str, k: int = 5, query_vec: list[float] | None = None) -> list[Hit]:
+    def search(
+        self, query: str, k: int = 5, query_vec: list[float] | None = None, doc_ids: set[int] | None = None
+    ) -> list[Hit]:
+        """doc_ids verilirse yalnızca o belgelerin parçaları aranır (kapsam)."""
         if not self.chunks:
             return []
         bm = self.bm25.scores(query)
-        bm_rank = sorted(range(len(bm)), key=lambda i: -bm[i])
+        allowed = [i for i, c in enumerate(self.chunks) if doc_ids is None or c.doc_id in doc_ids]
+        bm_rank = sorted(allowed, key=lambda i: -bm[i])
         fused: dict[int, float] = {}
         for r, i in enumerate(bm_rank):
             if bm[i] > 0:
@@ -80,7 +84,8 @@ class Index:
 
         vec: list[float | None] = [None] * len(self.chunks)
         if query_vec is not None:
-            for i, c in enumerate(self.chunks):
+            for i in allowed:
+                c = self.chunks[i]
                 if c.embedding:
                     vec[i] = cosine(query_vec, c.embedding)
             vec_rank = sorted((i for i in range(len(vec)) if vec[i] is not None), key=lambda i: -(vec[i] or 0))

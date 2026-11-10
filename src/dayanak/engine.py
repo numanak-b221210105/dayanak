@@ -64,21 +64,23 @@ class Engine:
                 self._index_version = self.store.version
             return self._index
 
-    def search(self, query: str, k: int = 5) -> list[Hit]:
+    def search(self, query: str, k: int = 5, doc_ids: set[int] | None = None) -> list[Hit]:
         idx = self.index()
         qvec = None
         if any(c.embedding for c in idx.chunks):
             vecs = llm.embed(self.cfg, [query])
             qvec = vecs[0] if vecs else None
-        return idx.search(query, k=k, query_vec=qvec)
+        return idx.search(query, k=k, query_vec=qvec, doc_ids=doc_ids)
 
     # ---------- cevap ----------
     def llm_available(self) -> bool:
         return self.llm_client is not None or llm.reachable(self.cfg)
 
-    def ask(self, question: str, mode: Mode = "auto", k: int = 4) -> Answer:
+    def ask(
+        self, question: str, mode: Mode = "auto", k: int = 4, doc_ids: set[int] | None = None, log: bool = True
+    ) -> Answer:
         t0 = time.perf_counter()
-        hits = self.search(question, k=k)
+        hits = self.search(question, k=k, doc_ids=doc_ids)
         citations = to_citations(hits)
         warnings: list[str] = []
         use_llm = mode == "llm" or (mode == "auto" and self.llm_available())
@@ -100,6 +102,13 @@ class Engine:
         warnings += check_warnings
         if checks and grounded is not None and grounded < 1:
             warnings.append(f"{sum(not c.supported for c in checks)} cümlenin dayanağı doğrulanamadı.")
+        elapsed = round((time.perf_counter() - t0) * 1000)
+        cited = sorted({citations[n - 1].doc_id for s in checks for n in s.cites if 0 < n <= len(citations)})
+        qid = (
+            self.store.log_query(question, used, abstained, None if abstained else grounded, elapsed, cited)
+            if log
+            else None
+        )
         return Answer(
             question=question,
             answer=text.strip(),
@@ -109,5 +118,6 @@ class Engine:
             citations=[] if abstained else citations,
             groundedness=None if abstained else grounded,
             warnings=warnings,
-            elapsed_ms=round((time.perf_counter() - t0) * 1000),
+            elapsed_ms=elapsed,
+            query_id=qid,
         )

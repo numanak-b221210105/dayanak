@@ -54,3 +54,18 @@ def test_upload_docx_search_and_delete(client):
 def test_unsupported_file(client):
     r = client.post("/documents", files={"files": ("a.xlsx", b"abc", "x")})
     assert r.status_code == 415
+
+
+def test_feedback_insights_and_scope(client):
+    docs = client.post("/documents/samples").json()
+    izin = next(d["id"] for d in docs if d["name"] == "izin-politikasi.md")
+    a = client.post("/ask", json={"question": "Babalık izni kaç gün?", "mode": "extractive", "doc_ids": [izin]}).json()
+    assert all(c["doc_id"] == izin for c in a["citations"])
+    assert client.post("/feedback", json={"query_id": a["query_id"], "value": -1}).status_code == 204
+    assert client.post("/feedback", json={"query_id": 9999, "value": 1}).status_code == 404
+    ins = client.get("/insights").json()
+    assert ins["total"] == 1 and ins["feedback_down"] == 1
+    hits = client.get("/search", params={"q": "parola", "docs": str(izin)}).json()
+    assert all(h["citation"]["doc_id"] == izin for h in hits)
+    assert client.delete("/insights").status_code == 204
+    assert client.get("/insights").json()["total"] == 0

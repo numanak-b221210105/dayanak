@@ -18,26 +18,33 @@ Ask questions about your own PDFs, Word files and notes. Dayanak finds the relev
 
 Retrieval-augmented generation is the most common way companies put LLMs on top of internal documents. Its classic failure mode is a fluent, well-cited answer that **the cited source does not actually say**. Dayanak treats that as a first-class problem:
 
-| Hallucination guard in action (simulated LLM answer) | Dark mode |
+| Hallucination guard in action (simulated LLM answer) | Insights: knowledge gaps and answer quality |
 |---|---|
-| ![Hallucination flagged](docs/hallucination.jpg) | ![Dark mode](docs/screenshot-dark.jpg) |
+| ![Hallucination flagged](docs/hallucination.jpg) | ![Insights](docs/insights.jpg) |
 
 The LLM claimed the daily meal limit is 1,000 TL. The cited passage says 750 TL, so the sentence is flagged ("number not in source"). The last sentence cites nothing, so it is flagged too. Groundedness: 33%.
 
-## Interface
+## Features
 
-A chat-style workspace built as a single dependency-free HTML file:
-
-- **Sidebar with persistent conversations** (stored in your browser), live LLM status and theme/language toggles
-- **Pipeline indicator** while answering: *searching passages → writing / selecting → verifying every sentence*
-- **Sentence-level citations** you can hover for an instant preview, and a **sources panel** that highlights the exact supporting sentences
-- **Groundedness ring** on every answer; unsupported sentences get a red wavy underline with the reason
-- **Command palette** (`Ctrl/⌘ + K`): live passage search across all documents, conversations and actions
-- Aurora background, cursor spotlight, view transitions, light/dark themes, Turkish/English UI, mobile layout, `prefers-reduced-motion` respected
-
-| Command palette with live passage search | Document library |
+| | |
 |---|---|
-| ![Palette](docs/palette.jpg) | ![Library](docs/library.jpg) |
+| **Ask** | Footnoted answers: every sentence links to its passage; sources listed like a bibliography with the supporting sentences highlighted. A verification badge shows how many sentences were confirmed, with per-sentence reasons on demand. |
+| **Scope** | Restrict a question to selected documents ("ask only the security policy"). |
+| **Reader** | Open any source in a full document view with an outline of its sections and the cited passage highlighted. |
+| **Search** | Passage-level search with document filters and visible BM25 / vector scores, so you can see *why* a passage was found. |
+| **Insights** | Questions over time, average grounding, abstention rate, most-cited documents and — most useful for a company — **knowledge gaps**: questions your documents could not answer, grouped and counted. |
+| **Feedback & export** | Thumbs up/down per answer (feeds Insights); export a conversation to Markdown with proper footnotes. |
+| **Settings** | Default mode, number of sources per answer, theme, language, LLM connection status and data reset. |
+
+Conversations persist in the browser; the query log lives in the same SQLite file as the documents. The UI is a single dependency-free HTML file with an editorial look (serif headings, footnotes, warm paper tones), light and dark themes, Turkish and English, keyboard shortcuts (`Ctrl+K` search, `Alt+N` new chat, `/` focus) and a mobile layout.
+
+| Search with visible scores | Document reader |
+|---|---|
+| ![Search](docs/search.jpg) | ![Reader](docs/reader.jpg) |
+
+| Dark mode | Settings |
+|---|---|
+| ![Dark](docs/screenshot-dark.jpg) | ![Settings](docs/settings.jpg) |
 
 ## How it works
 
@@ -110,8 +117,10 @@ Any other OpenAI-compatible provider can be configured in `.env` (see `.env.exam
 
 | Method | Path | Description |
 |---|---|---|
-| `POST` | `/ask` | `{"question": "...", "mode": "auto" \| "extractive" \| "llm", "k": 4}` → answer, citations, per-sentence checks, groundedness |
-| `GET` | `/search?q=...&k=5` | Ranked passages with BM25 / vector / fused scores |
+| `POST` | `/ask` | `{"question": "...", "mode": "auto" \| "extractive" \| "llm", "k": 4, "doc_ids": [1, 3]}` → answer, citations, per-sentence checks, groundedness, `query_id` |
+| `GET` | `/search?q=...&k=5&docs=1,3` | Ranked passages with BM25 / vector / fused scores |
+| `POST` | `/feedback` | `{"query_id": 12, "value": 1 \| -1 \| 0}` |
+| `GET` · `DELETE` | `/insights` | Usage analytics and knowledge gaps / clear the query log |
 | `POST` | `/documents` | Upload one or more files (`files` field) |
 | `POST` | `/documents/samples` | Load the demo documents |
 | `GET` | `/documents` · `DELETE` `/documents/{id}` | List / delete |
@@ -155,7 +164,7 @@ Results in quote mode (BM25 only):
 ## Tests
 
 ```bash
-pytest -q        # 24 tests, offline
+pytest -q        # 27 tests, offline
 ruff check . && ruff format --check .
 ```
 

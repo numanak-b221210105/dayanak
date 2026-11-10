@@ -37,6 +37,17 @@ CREATE TABLE IF NOT EXISTS chunks (
     embedding TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_chunks_doc ON chunks(doc_id);
+CREATE TABLE IF NOT EXISTS queries (
+    id INTEGER PRIMARY KEY,
+    ts REAL NOT NULL,
+    question TEXT NOT NULL,
+    mode TEXT NOT NULL,
+    abstained INTEGER NOT NULL,
+    groundedness REAL,
+    elapsed_ms INTEGER NOT NULL,
+    cited_docs TEXT NOT NULL DEFAULT '[]',
+    feedback INTEGER
+);
 """
 
 
@@ -156,3 +167,33 @@ class Store:
 
     def doc_chunks(self, doc_id: int) -> list[StoredChunk]:
         return [c for c in self.chunks() if c.doc_id == doc_id]
+
+    # ---------- sorgu günlüğü ----------
+    def log_query(
+        self,
+        question: str,
+        mode: str,
+        abstained: bool,
+        groundedness: float | None,
+        elapsed_ms: int,
+        cited_docs: list[int],
+    ) -> int:
+        with self._conn() as c:
+            cur = c.execute(
+                "INSERT INTO queries(ts, question, mode, abstained, groundedness, elapsed_ms, cited_docs) "
+                "VALUES (?,?,?,?,?,?,?)",
+                (time.time(), question, mode, int(abstained), groundedness, elapsed_ms, json.dumps(cited_docs)),
+            )
+            return int(cur.lastrowid or 0)
+
+    def set_feedback(self, query_id: int, value: int) -> bool:
+        with self._conn() as c:
+            return bool(c.execute("UPDATE queries SET feedback = ? WHERE id = ?", (value, query_id)).rowcount)
+
+    def queries(self) -> list[sqlite3.Row]:
+        with self._conn() as c:
+            return c.execute("SELECT * FROM queries ORDER BY ts DESC").fetchall()
+
+    def clear_queries(self) -> None:
+        with self._conn() as c:
+            c.execute("DELETE FROM queries")

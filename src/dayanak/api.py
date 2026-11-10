@@ -13,8 +13,9 @@ from pydantic import BaseModel
 from . import __version__, llm
 from .answer import to_citations
 from .engine import DuplicateDocument, Engine
+from .insights import compute as compute_insights
 from .loaders import SUPPORTED, UnsupportedFile
-from .schema import Answer, DocumentOut, Mode, SearchHit
+from .schema import Answer, DocumentOut, Insights, Mode, SearchHit
 
 app = FastAPI(
     title="Dayanak",
@@ -35,6 +36,12 @@ class AskRequest(BaseModel):
     question: str
     mode: Mode = "auto"
     k: int = 4
+    doc_ids: list[int] | None = None  # kapsam: yalnızca bu belgelerde ara
+
+
+class Feedback(BaseModel):
+    query_id: int
+    value: int  # 1: faydalı, -1: faydasız, 0: geri al
 
 
 class LLMStatus(BaseModel):
@@ -130,8 +137,12 @@ def document_chunks(doc_id: int) -> list[dict]:
 
 
 @app.get("/search", response_model=list[SearchHit])
-def search(q: str = Query(..., min_length=2), k: int = Query(5, ge=1, le=20)) -> list[SearchHit]:
-    hits = engine().search(q, k=k)
+def search(
+    q: str = Query(..., min_length=2),
+    k: int = Query(5, ge=1, le=20),
+    docs: str | None = Query(None, description="Virgülle ayrılmış belge numaraları"),
+) -> list[SearchHit]:
+    hits = engine().search(q, k=k, doc_ids=_parse_ids(docs))
     cites = to_citations(hits)
     return [
         SearchHit(rank=h.rank, score=round(h.score, 5), bm25=round(h.bm25, 3), vector=h.vector, citation=c)
@@ -146,7 +157,35 @@ def ask(req: AskRequest) -> Answer:
         raise HTTPException(422, "Soru boş")
     if not engine().store.documents():
         raise HTTPException(409, "Henüz belge yok. Önce belge yükleyin veya demo belgelerini ekleyin.")
-    return engine().ask(q, mode=req.mode, k=max(1, min(req.k, 8)))
+    scope = set(req.doc_ids) if req.doc_ids else None
+    return engine().ask(q, mode=req.mode, k=max(1, min(req.k, 8)), doc_ids=scope)
+
+
+@app.post("/feedback", status_code=204)
+def feedback(fb: Feedback) -> None:
+    if fb.value not in (-1, 0, 1):
+        raise HTTPException(422, "value -1, 0 veya 1 olmalı")
+    if not engine().store.set_feedback(fb.query_id, fb.value or None):  # type: ignore[arg-type]
+        raise HTTPException(404, "Sorgu bulunamadı")
+
+
+@app.get("/insights", response_model=Insights)
+def insights(days: int = Query(14, ge=1, le=90)) -> Insights:
+    return compute_insights(engine().store, days=days)
+
+
+@app.delete("/insights", status_code=204)
+def clear_insights() -> None:
+    engine().store.clear_queries()
+
+
+def _parse_ids(raw: str | None) -> set[int] | None:
+    if not raw:
+        return None
+    try:
+        return {int(x) for x in raw.split(",") if x.strip()}
+    except ValueError as e:
+        raise HTTPException(422, "docs: virgülle ayrılmış sayılar bekleniyor") from e
 
 
 @app.get("/formats")

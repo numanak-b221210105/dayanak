@@ -41,6 +41,7 @@ class Answer(BaseModel):
     groundedness: float | None = Field(description="Dayanağı doğrulanan cümle oranı")
     warnings: list[str] = Field(default_factory=list)
     elapsed_ms: int
+    query_id: int | None = Field(default=None, description="Geri bildirim için sorgu kaydı numarası")
 
 
 class DocumentOut(BaseModel):
@@ -58,3 +59,46 @@ class SearchHit(BaseModel):
     bm25: float
     vector: float | None
     citation: Citation
+
+
+class DayCount(BaseModel):
+    date: str
+    count: int
+
+
+class DocCount(BaseModel):
+    doc_id: int
+    name: str
+    count: int
+
+
+class Gap(BaseModel):
+    question: str
+    count: int
+    last_ts: float
+
+
+class QueryLog(BaseModel):
+    id: int
+    ts: float
+    question: str
+    mode: str
+    abstained: bool
+    groundedness: float | None
+    elapsed_ms: int
+    feedback: int | None
+
+
+class Insights(BaseModel):
+    total: int
+    answered: int
+    abstained: int
+    abstain_rate: float | None
+    avg_groundedness: float | None
+    avg_ms: float | None
+    feedback_up: int
+    feedback_down: int
+    by_day: list[DayCount]
+    top_docs: list[DocCount]
+    gaps: list[Gap] = Field(description="Belgelerde cevabı bulunamayan sorular: eksik doküman sinyali")
+    recent: list[QueryLog]

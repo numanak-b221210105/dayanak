@@ -77,3 +77,25 @@ def test_delete_updates_index(engine):
     engine.store.delete(doc.id)
     a = engine.ask("İş seyahatinde günlük yemek limiti ne kadar?", mode="extractive")
     assert all(c.doc_name != "masraf-yonetmeligi.md" for c in a.citations)
+
+
+def test_scope_limits_search_to_selected_documents(engine):
+    sec = next(d for d in engine.store.documents() if d.name == "bilgi-guvenligi-politikasi.md")
+    a = engine.ask("İş seyahatinde günlük yemek limiti ne kadar?", mode="extractive", doc_ids={sec.id})
+    assert all(c.doc_name == sec.name for c in a.citations)
+    assert "750" not in a.answer
+
+
+def test_queries_are_logged_and_insights_find_gaps(engine):
+    from dayanak.insights import compute
+
+    a = engine.ask("Babalık izni kaç gün?", mode="extractive")
+    engine.ask("Şirket servis güzergahları hangileri?", mode="extractive")
+    engine.ask("şirket servis güzergahları hangileri", mode="extractive")
+    assert a.query_id is not None
+    assert engine.store.set_feedback(a.query_id, 1)
+    ins = compute(engine.store)
+    assert ins.total == 3 and ins.abstained == 2 and ins.feedback_up == 1
+    assert ins.gaps[0].count == 2  # aynı soru farklı yazımla gruplanır
+    assert ins.top_docs[0].name == "izin-politikasi.md"
+    assert ins.by_day[-1].count == 3
