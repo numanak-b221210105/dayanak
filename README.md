@@ -18,11 +18,26 @@ Ask questions about your own PDFs, Word files and notes. Dayanak finds the relev
 
 Retrieval-augmented generation is the most common way companies put LLMs on top of internal documents. Its classic failure mode is a fluent, well-cited answer that **the cited source does not actually say**. Dayanak treats that as a first-class problem:
 
-| Hallucination guard in action (simulated LLM answer) | Document library |
+| Hallucination guard in action (simulated LLM answer) | Dark mode |
 |---|---|
-| ![Hallucination flagged](docs/hallucination.jpg) | ![Library](docs/library.jpg) |
+| ![Hallucination flagged](docs/hallucination.jpg) | ![Dark mode](docs/screenshot-dark.jpg) |
 
 The LLM claimed the daily meal limit is 1,000 TL. The cited passage says 750 TL, so the sentence is flagged ("number not in source"). The last sentence cites nothing, so it is flagged too. Groundedness: 33%.
+
+## Interface
+
+A chat-style workspace built as a single dependency-free HTML file:
+
+- **Sidebar with persistent conversations** (stored in your browser), live LLM status and theme/language toggles
+- **Pipeline indicator** while answering: *searching passages → writing / selecting → verifying every sentence*
+- **Sentence-level citations** you can hover for an instant preview, and a **sources panel** that highlights the exact supporting sentences
+- **Groundedness ring** on every answer; unsupported sentences get a red wavy underline with the reason
+- **Command palette** (`Ctrl/⌘ + K`): live passage search across all documents, conversations and actions
+- Aurora background, cursor spotlight, view transitions, light/dark themes, Turkish/English UI, mobile layout, `prefers-reduced-motion` respected
+
+| Command palette with live passage search | Document library |
+|---|---|
+| ![Palette](docs/palette.jpg) | ![Library](docs/library.jpg) |
 
 ## How it works
 
