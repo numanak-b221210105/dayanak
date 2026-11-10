@@ -1,0 +1,22 @@
+{"q": "Beş yıldan fazla kıdemi olan biri kaç gün yıllık izin alır?", "doc": "izin-politikasi.md", "facts": ["20"]}
+{"q": "Yıllık izin talebi kaç gün önceden yapılmalı?", "doc": "izin-politikasi.md", "facts": ["15"]}
+{"q": "Kullanılmayan izin bir sonraki yıla devredilebilir mi?", "doc": "izin-politikasi.md", "facts": ["5"]}
+{"q": "Babalık izni kaç gün?", "doc": "izin-politikasi.md", "facts": ["5"]}
+{"q": "Ücretsiz izin en fazla ne kadar sürebilir?", "doc": "izin-politikasi.md", "facts": ["3 ay"]}
+{"q": "Parola en az kaç karakter olmalı?", "doc": "bilgi-guvenligi-politikasi.md", "facts": ["12"]}
+{"q": "Parolalar ne sıklıkla değiştirilir?", "doc": "bilgi-guvenligi-politikasi.md", "facts": ["90"]}
+{"q": "Güvenlik olayını ne kadar sürede bildirmem gerekiyor?", "doc": "bilgi-guvenligi-politikasi.md", "facts": ["1 saat"]}
+{"q": "USB bellek kullanabilir miyim?", "doc": "bilgi-guvenligi-politikasi.md", "facts": ["yasak"]}
+{"q": "VPN için SMS doğrulama kabul ediliyor mu?", "doc": "bilgi-guvenligi-politikasi.md", "facts": ["SMS"]}
+{"q": "50.000 TL'lik bir alım için kaç teklif almalıyım?", "doc": "satin-alma-proseduru.md", "facts": ["üç"]}
+{"q": "Satın Alma Komitesi kimlerden oluşur?", "doc": "satin-alma-proseduru.md", "facts": ["Finans Direktörü"]}
+{"q": "Tedarikçilere standart ödeme vadesi nedir?", "doc": "satin-alma-proseduru.md", "facts": ["60"]}
+{"q": "Tedarikçiden hediye kabul edebilir miyim?", "doc": "satin-alma-proseduru.md", "facts": ["1.000"]}
+{"q": "İş seyahatinde günlük yemek limiti ne kadar?", "doc": "masraf-yonetmeligi.md", "facts": ["750"]}
+{"q": "İstanbul'da otel için gecelik üst sınır nedir?", "doc": "masraf-yonetmeligi.md", "facts": ["4.500"]}
+{"q": "Masrafları kaç gün içinde beyan etmeliyim?", "doc": "masraf-yonetmeligi.md", "facts": ["30"]}
+{"q": "Şahsi araçla seyahatte kilometre başına ne ödenir?", "doc": "masraf-yonetmeligi.md", "facts": ["9"]}
+{"q": "Şirketin yemekhane menüsü nerede yayınlanır?", "doc": null, "facts": []}
+{"q": "Kariyer basamakları ve terfi kriterleri nelerdir?", "doc": null, "facts": []}
+{"q": "Şirket servis güzergahları hangileri?", "doc": null, "facts": []}
+{"q": "Doğum günümde izin alabilir miyim?", "doc": null, "facts": []}
