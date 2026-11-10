@@ -1,0 +1,890 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Dayanak — Answers you can trace</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%234f46e5'/%3E%3Cpath d='M8 9h16M8 23h16M11 9v14M16 9v14M21 9v14' stroke='white' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+:root {
+  --font: "Inter", "SF Pro Display", -apple-system, "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --mono: "SF Mono", "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+  --radius: 22px;
+  --radius-sm: 14px;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+
+  --bg: #eef1f4;
+  --ink: #101418;
+  --ink-2: #4b5560;
+  --ink-3: #8a939c;
+  --line: rgba(16, 20, 24, .08);
+  --glass: rgba(255, 255, 255, .58);
+  --glass-strong: rgba(255, 255, 255, .78);
+  --glass-border: rgba(255, 255, 255, .75);
+  --glass-shadow: 0 1px 0 rgba(255,255,255,.8) inset, 0 -1px 0 rgba(255,255,255,.25) inset, 0 20px 50px -20px rgba(20, 40, 60, .28), 0 2px 8px rgba(20, 40, 60, .06);
+  --accent: #4f46e5;
+  --accent-2: #0ea5e9;
+  --accent-soft: rgba(79, 70, 229, .12);
+  --bad: #d4453b;
+  --bad-soft: rgba(212, 69, 59, .12);
+  --warn: #c98a12;
+  --warn-soft: rgba(201, 138, 18, .14);
+  --blob-1: #b4b8ff;
+  --blob-2: #9ee7ff;
+  --blob-3: #ffc9e3;
+  --blob-4: #c9f7e4;
+}
+:root[data-theme="dark"] {
+  --bg: #07090c;
+  --ink: #f2f5f7;
+  --ink-2: #b4bdc6;
+  --ink-3: #7a858f;
+  --line: rgba(255, 255, 255, .09);
+  --glass: rgba(28, 32, 38, .52);
+  --glass-strong: rgba(36, 40, 47, .78);
+  --glass-border: rgba(255, 255, 255, .12);
+  --glass-shadow: 0 1px 0 rgba(255,255,255,.12) inset, 0 -1px 0 rgba(255,255,255,.03) inset, 0 24px 60px -20px rgba(0, 0, 0, .7), 0 2px 8px rgba(0, 0, 0, .3);
+  --accent: #a5b4fc;
+  --accent-2: #7dd3fc;
+  --accent-soft: rgba(165, 180, 252, .16);
+  --bad: #ff7b72;
+  --bad-soft: rgba(255, 123, 114, .14);
+  --warn: #f2c14e;
+  --warn-soft: rgba(242, 193, 78, .14);
+  --blob-1: #2a2a7a;
+  --blob-2: #0c4a6e;
+  --blob-3: #5b1e47;
+  --blob-4: #134e3a;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; }
+body {
+  font: 15px/1.5 var(--font); color: var(--ink); background: var(--bg);
+  -webkit-font-smoothing: antialiased; overflow-x: hidden;
+}
+button { font: inherit; color: inherit; }
+a { color: var(--accent); }
+::selection { background: var(--accent-soft); }
+
+/* ---------- Ambient background ---------- */
+.ambient { position: fixed; inset: 0; z-index: -1; overflow: hidden; }
+.ambient i {
+  position: absolute; width: 46vmax; height: 46vmax; border-radius: 50%;
+  filter: blur(70px); opacity: .75; animation: drift 26s var(--ease) infinite alternate;
+}
+.ambient i:nth-child(1) { background: var(--blob-1); top: -14vmax; left: -10vmax; }
+.ambient i:nth-child(2) { background: var(--blob-2); top: 10vmax; right: -16vmax; animation-delay: -8s; }
+.ambient i:nth-child(3) { background: var(--blob-3); bottom: -20vmax; left: 20vmax; animation-delay: -15s; }
+.ambient i:nth-child(4) { background: var(--blob-4); top: 30vmax; left: -12vmax; width: 30vmax; height: 30vmax; animation-delay: -4s; }
+.ambient::after {
+  content: ""; position: absolute; inset: 0; opacity: .035; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+@keyframes drift {
+  to { transform: translate(6vmax, 4vmax) scale(1.12); }
+}
+
+/* ---------- Glass ---------- */
+.glass {
+  position: relative; background: var(--glass);
+  backdrop-filter: blur(28px) saturate(180%); -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid var(--glass-border); border-radius: var(--radius);
+  box-shadow: var(--glass-shadow);
+}
+.glass::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(160deg, rgba(255,255,255,.35), rgba(255,255,255,0) 38%);
+  opacity: .7;
+}
+:root[data-theme="dark"] .glass::before { opacity: .12; }
+.glass > * { position: relative; }
+
+/* ---------- Nav ---------- */
+header {
+  position: sticky; top: 14px; z-index: 20; margin: 14px auto 0; max-width: 1320px;
+  width: calc(100% - 28px); display: flex; align-items: center; gap: 12px; padding: 8px 10px 8px 16px;
+  border-radius: 999px;
+}
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; letter-spacing: -.02em; white-space: nowrap; }
+.brand svg { width: 30px; height: 30px; }
+.brand span { color: var(--accent); }
+.tabs { position: relative; display: flex; gap: 2px; padding: 4px; margin: 0 auto; border-radius: 999px; background: rgba(127,127,127,.1); }
+.tabs button {
+  position: relative; z-index: 1; border: 0; background: none; cursor: pointer; padding: 7px 16px;
+  border-radius: 999px; font-size: 14px; font-weight: 500; color: var(--ink-2); transition: color .25s; white-space: nowrap;
+  display: flex; align-items: center; gap: 7px;
+}
+.tabs button svg { width: 16px; height: 16px; }
+.tabs button[aria-selected="true"] { color: var(--ink); }
+.tabs .pill {
+  position: absolute; z-index: 0; top: 4px; bottom: 4px; border-radius: 999px; background: var(--glass-strong);
+  box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 4px 14px rgba(0,0,0,.1); transition: left .4s var(--ease), width .4s var(--ease);
+}
+.tools { display: flex; align-items: center; gap: 6px; }
+.icon-btn {
+  width: 36px; height: 36px; border-radius: 50%; border: 0; background: rgba(127,127,127,.1); cursor: pointer;
+  display: grid; place-items: center; transition: background .2s, transform .2s; color: var(--ink-2);
+}
+.icon-btn:hover { background: rgba(127,127,127,.2); color: var(--ink); }
+.icon-btn:active { transform: scale(.94); }
+.icon-btn svg { width: 18px; height: 18px; }
+.lang { font-size: 12px; font-weight: 700; letter-spacing: .04em; }
+.status-pill {
+  display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: 999px; border: 0;
+  background: rgba(127,127,127,.1); font-size: 13px; color: var(--ink-2); cursor: pointer; white-space: nowrap;
+}
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); box-shadow: 0 0 0 3px rgba(127,127,127,.15); }
+.dot.on { background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.dot.off { background: var(--warn); box-shadow: 0 0 0 3px var(--warn-soft); }
+
+/* ---------- Layout ---------- */
+main { max-width: 1320px; margin: 0 auto; padding: 26px 14px 60px; }
+.view { display: none; animation: rise .5s var(--ease); }
+.view.active { display: block; }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+.hero { padding: 18px 6px 26px; }
+.hero h1 { font-size: clamp(30px, 4vw, 46px); line-height: 1.05; letter-spacing: -.035em; margin: 0 0 10px; font-weight: 700; }
+.hero h1 em {
+  font-style: normal; background: linear-gradient(120deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.hero p { margin: 0; color: var(--ink-2); font-size: 17px; max-width: 680px; }
+.grid-2 { display: grid; grid-template-columns: minmax(360px, 5fr) minmax(420px, 7fr); gap: 20px; align-items: start; }
+@media (max-width: 1000px) { .grid-2 { grid-template-columns: 1fr; } .tabs button span { display: none; } }
+@media (max-width: 640px) { .status-pill .st-label, .brand b, #helpBtn { display: none; } .tabs button { padding: 7px 11px; } .icon-btn, .status-pill { width: 34px; height: 34px; } .status-pill { padding: 0; justify-content: center; } header { gap: 6px; } header { padding-left: 10px; } }
+.card { padding: 22px; }
+.card + .card { margin-top: 20px; }
+.card h2 { margin: 0 0 14px; font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); display: flex; align-items: center; gap: 8px; }
+.card h2 .count { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 500; }
+.sticky { position: sticky; top: 92px; }
+
+/* ---------- Input ---------- */
+.drop {
+  border: 1.5px dashed color-mix(in srgb, var(--ink-3) 55%, transparent); border-radius: var(--radius-sm); padding: 26px 16px;
+  text-align: center; cursor: pointer; transition: all .25s var(--ease); background: rgba(127,127,127,.04);
+}
+.drop:hover, .drop.over { border-color: var(--accent); background: var(--accent-soft); transform: scale(1.01); }
+.drop svg { width: 34px; height: 34px; color: var(--accent); margin-bottom: 6px; }
+.drop b { display: block; font-size: 15px; }
+.drop small { color: var(--ink-3); }
+.drop .file-name { color: var(--accent); font-weight: 600; }
+.or { display: flex; align-items: center; gap: 12px; color: var(--ink-3); font-size: 12px; margin: 14px 0; text-transform: uppercase; letter-spacing: .1em; }
+.or::before, .or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+textarea {
+  width: 100%; min-height: 220px; resize: vertical; border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 14px;
+  font: 12.5px/1.6 var(--mono); color: var(--ink); background: rgba(127,127,127,.06); transition: border .2s, box-shadow .2s;
+}
+textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.label { display: block; font-size: 12px; font-weight: 600; color: var(--ink-3); margin: 18px 0 8px; text-transform: uppercase; letter-spacing: .08em; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  border: 1px solid var(--line); background: var(--glass-strong); padding: 7px 12px; border-radius: 999px; cursor: pointer;
+  font-size: 13px; display: flex; align-items: center; gap: 6px; transition: all .2s var(--ease);
+}
+.chip:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+.chip i { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.chip i.w { background: var(--warn); } .chip i.b { background: var(--bad); } .chip i.n { background: var(--accent-2); }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; border-radius: var(--radius-sm); background: rgba(127,127,127,.1); }
+.seg button { border: 0; background: none; border-radius: 10px; padding: 9px 6px; cursor: pointer; text-align: center; transition: all .25s var(--ease); }
+.seg button b { display: block; font-size: 14px; }
+.seg button small { display: block; font-size: 11.5px; color: var(--ink-3); }
+.seg button.on { background: var(--glass-strong); box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 4px 14px rgba(0,0,0,.08); }
+.seg button.on b { color: var(--accent); }
+.run-row { display: flex; align-items: center; gap: 12px; margin-top: 20px; }
+.kbd { font: 11px var(--mono); color: var(--ink-3); }
+.kbd kbd { padding: 2px 6px; border-radius: 6px; border: 1px solid var(--line); background: var(--glass-strong); }
+.btn {
+  border: 0; cursor: pointer; border-radius: 999px; padding: 12px 22px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;
+  transition: transform .2s var(--ease), box-shadow .2s, opacity .2s;
+}
+.btn svg { width: 17px; height: 17px; }
+.btn-primary {
+  margin-left: auto; color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: 0 1px 0 rgba(255,255,255,.35) inset, 0 10px 24px -8px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+:root[data-theme="dark"] .btn-primary { color: #04110c; }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 1px 0 rgba(255,255,255,.35) inset, 0 14px 30px -8px color-mix(in srgb, var(--accent) 80%, transparent); }
+.btn-primary:active { transform: scale(.97); }
+.btn-primary:disabled { opacity: .6; cursor: progress; }
+.btn-ghost { background: rgba(127,127,127,.1); padding: 9px 14px; font-weight: 500; font-size: 13.5px; }
+.btn-ghost:hover { background: rgba(127,127,127,.2); }
+.spinner { width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(1turn); } }
+
+/* ---------- Modal & toast ---------- */
+.scrim { position: fixed; inset: 0; z-index: 50; display: none; place-items: center; padding: 20px; background: rgba(10, 14, 18, .28); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.scrim.open { display: grid; animation: fade .3s var(--ease); }
+@keyframes fade { from { opacity: 0; } }
+.modal { width: min(680px, 100%); max-height: calc(100vh - 40px); overflow: auto; padding: 30px; animation: pop .45s var(--ease); }
+@keyframes pop { from { opacity: 0; transform: translateY(14px) scale(.97); } }
+.modal .logo-big { width: 64px; height: 64px; margin-bottom: 14px; }
+.modal h2 { margin: 0 0 6px; font-size: 28px; letter-spacing: -.03em; }
+.modal > p { margin: 0 0 22px; color: var(--ink-2); font-size: 15.5px; }
+.modal .features { margin-bottom: 22px; }
+.modal-foot { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.modal-foot label { font-size: 13px; color: var(--ink-2); display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.close-x { position: absolute; top: 16px; right: 16px; }
+.popover { position: absolute; right: 0; top: 46px; width: 320px; padding: 16px; display: none; font-size: 13.5px; }
+.popover.open { display: block; animation: pop .3s var(--ease); }
+.popover b { display: block; margin-bottom: 4px; }
+.popover p { margin: 0 0 8px; color: var(--ink-2); }
+.popover code { font: 12px var(--mono); }
+.toast {
+  position: fixed; left: 50%; bottom: 26px; z-index: 60; transform: translate(-50%, 30px); opacity: 0; pointer-events: none;
+  padding: 11px 18px; border-radius: 999px; font-size: 14px; font-weight: 500; transition: all .35s var(--ease);
+}
+.toast.show { transform: translate(-50%, 0); opacity: 1; }
+footer { text-align: center; color: var(--ink-3); font-size: 13px; padding: 10px 0 30px; }
+footer a { color: var(--ink-2); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+
+/* ---------- Ask ---------- */
+.ask-grid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(320px, 5fr); gap: 20px; align-items: start; }
+@media (max-width: 1000px) { .ask-grid { grid-template-columns: 1fr; } }
+.thread { display: flex; flex-direction: column; min-height: 62vh; padding: 0; overflow: hidden; }
+.messages { flex: 1; padding: 22px; display: flex; flex-direction: column; gap: 18px; max-height: 64vh; overflow-y: auto; scroll-behavior: smooth; }
+.msg-q { align-self: flex-end; max-width: 80%; padding: 11px 16px; border-radius: 18px 18px 6px 18px; color: #fff;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow: 0 8px 22px -10px color-mix(in srgb, var(--accent) 70%, transparent); animation: rise .35s var(--ease); }
+:root[data-theme="dark"] .msg-q { color: #0b0d1a; }
+.msg-a { align-self: flex-start; max-width: 94%; padding: 16px 18px; border-radius: 18px 18px 18px 6px; background: var(--glass-strong);
+  border: 1px solid var(--glass-border); animation: rise .45s var(--ease); cursor: pointer; transition: box-shadow .25s; }
+.msg-a.active { box-shadow: 0 0 0 2px var(--accent-soft), 0 10px 30px -14px rgba(0,0,0,.25); }
+.msg-a .body { font-size: 15.5px; line-height: 1.65; }
+.sent { transition: background .2s; border-radius: 4px; }
+.sent.bad { text-decoration: underline wavy var(--bad); text-underline-offset: 4px; text-decoration-thickness: 1.5px; }
+.sent:hover { background: rgba(127,127,127,.08); }
+.cite { display: inline-grid; place-items: center; min-width: 22px; height: 20px; padding: 0 6px; margin: 0 1px; border-radius: 7px; border: 0;
+  font: 600 11.5px var(--font); vertical-align: 2px; cursor: pointer; background: var(--accent-soft); color: var(--accent); transition: all .2s; }
+.cite:hover, .cite.on { background: var(--accent); color: #fff; }
+.msg-a .foot { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--ink-3); }
+.meter { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+.meter .track { width: 70px; height: 6px; border-radius: 99px; background: rgba(127,127,127,.15); overflow: hidden; }
+.meter .track i { display: block; height: 100%; border-radius: inherit; animation: grow .8s var(--ease) both; transform-origin: left; }
+@keyframes grow { from { transform: scaleX(0); } }
+.meter.ok { color: var(--accent); } .meter.ok i { background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+.meter.mid { color: var(--warn); } .meter.mid i { background: var(--warn); }
+.meter.bad { color: var(--bad); } .meter.bad i { background: var(--bad); }
+.tag { font: 11.5px var(--mono); padding: 3px 9px; border-radius: 999px; background: rgba(127,127,127,.1); color: var(--ink-2); }
+.abstain { display: flex; gap: 12px; align-items: flex-start; }
+.abstain .ic { width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; background: var(--warn-soft); color: var(--warn); flex: none; }
+.abstain .ic svg { width: 17px; height: 17px; }
+.abstain small { display: block; color: var(--ink-3); margin-top: 2px; }
+.warnline { margin-top: 10px; font-size: 12.5px; color: var(--bad); display: flex; gap: 6px; align-items: flex-start; }
+.typing { display: inline-flex; gap: 5px; padding: 6px 2px; }
+.typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--ink-3); animation: blink 1.2s infinite; }
+.typing i:nth-child(2) { animation-delay: .15s; } .typing i:nth-child(3) { animation-delay: .3s; }
+@keyframes blink { 0%, 80%, 100% { opacity: .25; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-3px); } }
+.composer { border-top: 1px solid var(--line); padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.composer-row { display: flex; gap: 10px; align-items: flex-end; }
+.composer textarea { flex: 1; min-height: 50px; max-height: 160px; resize: none; padding: 13px 16px; border-radius: 16px; border: 1px solid var(--line);
+  background: rgba(127,127,127,.06); font: 15px/1.45 var(--font); color: var(--ink); }
+.composer textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.send { width: 50px; height: 50px; border-radius: 16px; border: 0; cursor: pointer; display: grid; place-items: center; color: #fff;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2)); transition: transform .2s var(--ease), opacity .2s; flex: none; }
+.send:hover { transform: translateY(-1px); } .send:disabled { opacity: .5; cursor: progress; }
+.send svg { width: 20px; height: 20px; }
+.mini-seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: rgba(127,127,127,.1); }
+.mini-seg button { border: 0; background: none; padding: 5px 12px; border-radius: 999px; font-size: 12.5px; cursor: pointer; color: var(--ink-2); }
+.mini-seg button.on { background: var(--glass-strong); color: var(--accent); font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+.composer-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12px; color: var(--ink-3); }
+.composer-meta .kbd { margin-left: auto; }
+.welcome-q { margin: auto; text-align: center; padding: 30px 10px; max-width: 560px; }
+.welcome-q .orb { width: 84px; height: 84px; margin: 0 auto 16px; border-radius: 26px; display: grid; place-items: center;
+  background: linear-gradient(145deg, var(--accent-soft), rgba(127,127,127,.06)); border: 1px solid var(--glass-border); }
+.welcome-q .orb svg { width: 38px; height: 38px; color: var(--accent); }
+.welcome-q h3 { margin: 0 0 6px; font-size: 20px; letter-spacing: -.02em; }
+.welcome-q p { margin: 0 0 18px; color: var(--ink-2); }
+.suggest { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+
+/* ---------- Sources panel ---------- */
+.sources { position: sticky; top: 92px; max-height: calc(100vh - 110px); overflow-y: auto; }
+.src { padding: 14px; border-radius: var(--radius-sm); background: rgba(127,127,127,.06); border: 1px solid var(--line); margin-bottom: 10px;
+  transition: all .3s var(--ease); }
+.src.on { border-color: var(--accent); background: var(--accent-soft); transform: translateX(-3px); }
+.src.unused { opacity: .55; }
+.src-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.src-n { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; font-weight: 700; font-size: 12.5px; color: #fff; flex: none;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+:root[data-theme="dark"] .src-n { color: #0b0d1a; }
+.src-title { min-width: 0; }
+.src-title b { display: block; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.src-title small { color: var(--ink-3); font-size: 12px; }
+.src p { margin: 0; font-size: 13.5px; line-height: 1.6; color: var(--ink-2); white-space: pre-line; }
+.src mark { background: color-mix(in srgb, var(--accent) 22%, transparent); color: var(--ink); border-radius: 4px; padding: 0 2px; }
+.empty-src { color: var(--ink-3); text-align: center; padding: 40px 10px; font-size: 14px; }
+.checklist { margin: 0 0 14px; padding: 12px 14px; border-radius: var(--radius-sm); background: rgba(127,127,127,.06); border: 1px solid var(--line); }
+.checklist b { font-size: 13px; }
+.checklist ol { margin: 8px 0 0; padding-left: 18px; font-size: 13px; color: var(--ink-2); }
+.checklist li { margin-bottom: 4px; }
+.checklist li.bad { color: var(--bad); }
+.checklist li small { display: block; opacity: .85; }
+
+/* ---------- Library ---------- */
+.lib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin-top: 20px; }
+.doc { padding: 18px; display: flex; flex-direction: column; gap: 10px; animation: rise .4s var(--ease) both; }
+.doc-top { display: flex; gap: 12px; align-items: flex-start; }
+.doc-ic { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; font: 700 11px var(--mono); color: #fff; flex: none;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+.doc-ic.pdf { background: linear-gradient(135deg, #e5484d, #f76b15); } .doc-ic.docx { background: linear-gradient(135deg, #2563eb, #0ea5e9); }
+.doc-ic.txt { background: linear-gradient(135deg, #64748b, #94a3b8); }
+.doc-name { font-weight: 600; word-break: break-word; }
+.doc-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+.doc-actions { display: flex; gap: 8px; margin-top: auto; }
+.lib-head { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.lib-head .drop { flex: 1; min-width: 260px; }
+.lib-stats { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+
+/* ---------- Drawer ---------- */
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; z-index: 55; width: min(560px, 100%); padding: 22px; overflow-y: auto; border-radius: 0;
+  transform: translateX(105%); transition: transform .45s var(--ease); border-left: 1px solid var(--glass-border); }
+.drawer.open { transform: none; }
+.drawer h3 { margin: 0 46px 4px 0; font-size: 19px; letter-spacing: -.01em; }
+.chunk { padding: 12px 14px; border-radius: var(--radius-sm); background: rgba(127,127,127,.06); border: 1px solid var(--line); margin-top: 10px; font-size: 13.5px; }
+.chunk small { color: var(--ink-3); font-size: 11.5px; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+.chunk p { margin: 6px 0 0; color: var(--ink-2); white-space: pre-line; line-height: 1.6; }
+
+/* ---------- About ---------- */
+.steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+@media (max-width: 1000px) { .steps { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .steps { grid-template-columns: 1fr; } }
+.step { padding: 22px; }
+.step .num { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; font-weight: 700; color: #fff; background: linear-gradient(135deg, var(--accent), var(--accent-2)); margin-bottom: 12px; }
+.step h3 { margin: 0 0 6px; font-size: 17px; letter-spacing: -.01em; }
+.step p { margin: 0; color: var(--ink-2); font-size: 14px; }
+.features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+@media (max-width: 900px) { .features { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 560px) { .features { grid-template-columns: 1fr; } }
+.feature { padding: 16px; border-radius: var(--radius-sm); background: rgba(127,127,127,.06); border: 1px solid var(--line); }
+.feature svg { width: 22px; height: 22px; color: var(--accent); }
+.feature b { display: block; margin: 8px 0 4px; }
+.feature p { margin: 0; color: var(--ink-2); font-size: 13.5px; }
+.eval-table td, .eval-table th { padding: 9px 10px; }
+.eval-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.eval-table th { text-align: left; font-size: 11.5px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .06em; border-bottom: 1px solid var(--line); }
+.eval-table td { border-bottom: 1px solid var(--line); }
+.code pre { margin: 0; padding: 16px; border-radius: var(--radius-sm); background: rgba(10, 14, 18, .88); color: #d8e2ea; font: 12.5px/1.6 var(--mono); overflow: auto; }
+.muted { color: var(--ink-2); }
+</style>
+</head>
+<body>
+<div class="ambient" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f46e5"/><stop offset="1" stop-color="#0ea5e9"/></linearGradient>
+    <symbol id="i-logo" viewBox="0 0 32 32"><rect width="32" height="32" rx="9" fill="url(#lg)"/><path d="M8 9h16M8 23h16M11 9v14M16 9v14M21 9v14" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12Z"/><path d="M9 11h6M9 14h4"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5v-15Z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4m0 0L7.5 8.5M12 4l4.5 4.5"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M7 7l10 10M17 7 7 17"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3Z"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-hash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 9h14M5 15h14M10 4 8 20M16 4l-2 16"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 8-4 4 4 4M16 8l4 4-4 4M14 5l-4 14"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 8v5M12 16.5h.01"/><circle cx="12" cy="12" r="9"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/></symbol>
+  </defs>
+</svg>
+
+<header class="glass">
+  <div class="brand"><svg><use href="#i-logo"/></svg><b>Dayanak<span>.</span></b></div>
+  <nav class="tabs" role="tablist">
+    <span class="pill" aria-hidden="true"></span>
+    <button role="tab" data-view="ask" aria-selected="true"><svg><use href="#i-chat"/></svg><span data-i18n="tab.ask"></span></button>
+    <button role="tab" data-view="library" aria-selected="false"><svg><use href="#i-book"/></svg><span data-i18n="tab.library"></span></button>
+    <button role="tab" data-view="about" aria-selected="false"><svg><use href="#i-info"/></svg><span data-i18n="tab.about"></span></button>
+  </nav>
+  <div class="tools" style="position:relative">
+    <button class="status-pill" id="statusBtn"><i class="dot" id="statusDot"></i><span class="st-label" id="statusLabel">…</span></button>
+    <div class="popover glass" id="statusPop"></div>
+    <button class="icon-btn lang" id="langBtn" aria-label="Language">TR</button>
+    <button class="icon-btn" id="themeBtn" aria-label="Theme"><svg><use href="#i-moon"/></svg></button>
+    <button class="icon-btn" id="helpBtn" aria-label="Help"><svg><use href="#i-info"/></svg></button>
+  </div>
+</header>
+
+<main>
+  <!-- ============ ASK ============ -->
+  <section class="view active" id="view-ask">
+    <div class="hero">
+      <h1 data-i18n-html="hero.title"></h1>
+      <p data-i18n="hero.sub"></p>
+    </div>
+    <div class="ask-grid">
+      <div class="glass card thread">
+        <div class="messages" id="messages"></div>
+        <div class="composer">
+          <div class="composer-row">
+            <textarea id="q" rows="1" data-i18n-placeholder="ask.ph"></textarea>
+            <button class="send" id="send" aria-label="Send"><svg><use href="#i-send"/></svg></button>
+          </div>
+          <div class="composer-meta">
+            <div class="mini-seg" id="mode">
+              <button data-v="auto" class="on">Auto</button>
+              <button data-v="extractive" data-i18n="mode.ext"></button>
+              <button data-v="llm">LLM</button>
+            </div>
+            <span id="modeHint"></span>
+            <span class="kbd"><kbd>Enter</kbd> <span data-i18n="ask.send"></span> · <kbd>Shift</kbd>+<kbd>Enter</kbd> <span data-i18n="ask.nl"></span></span>
+          </div>
+        </div>
+      </div>
+      <aside class="glass card sources" id="sources">
+        <h2 data-i18n="src.title"></h2>
+        <div class="empty-src" data-i18n="src.empty"></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============ LIBRARY ============ -->
+  <section class="view" id="view-library">
+    <div class="hero">
+      <h1 data-i18n-html="lib.title"></h1>
+      <p data-i18n="lib.sub"></p>
+    </div>
+    <div class="glass card">
+      <div class="lib-head">
+        <div class="drop" id="drop" tabindex="0" role="button">
+          <svg><use href="#i-upload"/></svg>
+          <b data-i18n="lib.drop"></b>
+          <small data-i18n="lib.dropHint"></small>
+          <input type="file" id="files" accept=".pdf,.docx,.md,.txt" multiple hidden>
+        </div>
+      </div>
+      <div class="lib-stats" id="libStats"></div>
+    </div>
+    <div class="lib-grid" id="docs"></div>
+  </section>
+
+  <!-- ============ ABOUT ============ -->
+  <section class="view" id="view-about">
+    <div class="hero">
+      <h1 data-i18n-html="about.title"></h1>
+      <p data-i18n="about.sub"></p>
+    </div>
+    <div class="steps" id="steps"></div>
+    <div class="glass card">
+      <h2 data-i18n="about.features"></h2>
+      <div class="features" id="features"></div>
+    </div>
+    <div class="glass card">
+      <h2 data-i18n="about.eval"></h2>
+      <p class="muted" style="margin:0 0 12px" data-i18n="about.evalSub"></p>
+      <table class="eval-table" id="evalTable"></table>
+    </div>
+    <div class="glass card">
+      <h2 data-i18n="about.api"></h2>
+      <p class="muted" style="margin:0 0 12px" data-i18n-html="about.apiSub"></p>
+      <div class="code"><pre id="apiSnippet"></pre></div>
+    </div>
+  </section>
+</main>
+
+<footer>Dayanak <span id="ver"></span> · <a href="/docs">API docs</a> · <a href="https://github.com/numanak-b221210105/dayanak" target="_blank" rel="noopener">GitHub</a> · MIT</footer>
+
+<div class="drawer glass" id="drawer" role="dialog" aria-modal="true">
+  <button class="icon-btn close-x" id="drawerClose" aria-label="Close"><svg><use href="#i-x"/></svg></button>
+  <div id="drawerBody"></div>
+</div>
+
+<div class="scrim" id="welcome" role="dialog" aria-modal="true">
+  <div class="glass modal">
+    <button class="icon-btn close-x" id="wClose" aria-label="Close"><svg><use href="#i-x"/></svg></button>
+    <svg class="logo-big"><use href="#i-logo"/></svg>
+    <h2 data-i18n="w.title"></h2>
+    <p data-i18n="w.sub"></p>
+    <div class="features" id="wFeatures" style="grid-template-columns:1fr 1fr;margin-bottom:22px"></div>
+    <div class="modal-foot">
+      <label><input type="checkbox" id="wHide"> <span data-i18n="w.hide"></span></label>
+      <button class="btn btn-ghost" id="wOwn" style="margin-left:auto" data-i18n="w.own"></button>
+      <button class="btn btn-primary" id="wDemo" style="margin-left:0"><svg><use href="#i-sparkle"/></svg><span data-i18n="w.demo"></span></button>
+    </div>
+  </div>
+</div>
+
+<div class="toast glass" id="toast"></div>
+
+<script>
+"use strict";
+const I18N = {
+  en: {
+    "tab.ask": "Ask", "tab.library": "Documents", "tab.about": "How it works",
+    "hero.title": "Ask your documents. <em>Trace</em> every answer.",
+    "hero.sub": "Dayanak answers from your own files, cites the exact passage for every sentence — and flags any claim it cannot back up.",
+    "ask.ph": "Ask a question about your documents…", "ask.send": "send", "ask.nl": "new line",
+    "mode.ext": "Quote", "hint.auto": "LLM if available, otherwise quotes", "hint.extractive": "Quotes sentences verbatim — no LLM", "hint.llm": "Writes an answer, then verifies it",
+    "start.title": "What would you like to know?", "start.sub": "The demo documents are Turkish company policies — try one of these questions:",
+    "start.noDocs": "No documents yet", "start.noDocsSub": "Load the demo documents or upload your own PDF, DOCX, MD or TXT files.",
+    "start.loadDemo": "Load demo documents", "start.upload": "Upload files",
+    "q1": "Beş yıldan fazla kıdemi olan biri kaç gün yıllık izin alır?", "q2": "Güvenlik olayını ne kadar sürede bildirmem gerekiyor?",
+    "q3": "50.000 TL'lik bir alım için kaç teklif almalıyım?", "q4": "İş seyahatinde günlük yemek limiti ne kadar?",
+    "q5": "Şirketin yemekhane menüsü nerede yayınlanır?",
+    "a.grounded": "Grounded", "a.verified": "{ok}/{n} sentences verified", "a.abstain": "No basis found in the documents",
+    "a.abstainSub": "Rather than guess, Dayanak tells you the documents don't cover this.", "a.unsupported": "Could not verify: {r}",
+    "src.title": "Sources", "src.empty": "Sources for the selected answer will appear here.", "src.unused": "retrieved, not cited",
+    "src.checks": "Sentence checks", "src.page": "p.",
+    "lib.title": "Your <em>knowledge</em> base.", "lib.sub": "Everything stays on your machine. Documents are split into passages and indexed for search.",
+    "lib.drop": "Drop PDF, DOCX, MD or TXT files", "lib.dropHint": "or click to browse · up to 20 MB each",
+    "lib.docs": "documents", "lib.chunks": "passages", "lib.words": "words", "lib.vec": "Vector search on", "lib.novec": "Keyword search (BM25)",
+    "lib.view": "Passages", "lib.del": "Delete", "lib.demo": "Load demo documents", "lib.empty": "No documents yet.",
+    "lib.confirm": "Delete {name}?", "lib.added": "{n} document(s) added", "lib.dup": "Already uploaded", "lib.deleted": "Document deleted",
+    "lib.passages": "{n} passages", "lib.wordsN": "{n} words",
+    "about.title": "Retrieve. Answer. <em>Verify.</em>",
+    "about.sub": "Dayanak means \"basis\" or \"grounds\" in Turkish — the evidence a claim rests on. Every answer must have one.",
+    "about.s1": "Index", "about.s1d": "Files are split into heading-aware passages with a little overlap, so facts on a boundary are never lost.",
+    "about.s2": "Retrieve", "about.s2d": "Turkish-aware BM25 keyword search, fused with vector search via Reciprocal Rank Fusion when an embedding model is available.",
+    "about.s3": "Answer", "about.s3d": "An LLM answers only from the numbered passages — or, with no LLM, the best matching sentences are quoted verbatim.",
+    "about.s4": "Verify", "about.s4d": "Each sentence is checked against the passage it cites. Unsupported claims and numbers that do not appear in the source are flagged.",
+    "about.features": "What you get", "about.eval": "Measured, not assumed", "about.evalSub": "22 questions on the demo documents, including 4 that the documents cannot answer (quote mode, no LLM).",
+    "about.api": "Use it from code", "about.apiSub": "Everything in this UI is a REST call. Interactive docs at <a href='/docs'>/docs</a>.",
+    "f.cite": "Sentence-level citations", "f.citeD": "Every claim links to the exact passage it came from.",
+    "f.verify": "Hallucination guard", "f.verifyD": "Unsupported sentences and invented numbers are flagged in red.",
+    "f.abstain": "Knows when it doesn't know", "f.abstainD": "Questions outside your documents get an honest \"no basis found\".",
+    "f.tr": "Built for Turkish", "f.trD": "Turkish casing and prefix stemming tuned on an eval set.",
+    "f.offline": "Works without an LLM", "f.offlineD": "Quote mode needs no model at all. Add Ollama for written answers.",
+    "f.private": "Private by default", "f.privateD": "Runs locally; documents live in a single SQLite file.",
+    "e.metric": "Metric", "e.value": "Result", "e.means": "What it means",
+    "e.hit": "Right document ranked first", "e.fact": "Expected fact present in answer", "e.abst": "Correctly declined unanswerable questions",
+    "e.false": "Wrongly declined answerable questions", "e.ground": "Answer sentences verified against sources",
+    "w.title": "Welcome to Dayanak", "w.sub": "Ask questions in plain language and get answers you can check — straight from your own documents.",
+    "w.hide": "Don't show this again", "w.own": "Use my own files", "w.demo": "Try with demo documents",
+    "llm.on": "LLM ready", "llm.off": "Quote mode", "pop.on": "Connected to {h}. Model: {m}.", "pop.off": "No LLM at {h}. Dayanak answers by quoting your documents. For written answers install Ollama and run:",
+    "pop.vec": "For semantic search also run:", "pop.edit": "Or configure another provider in .env.",
+    "toast.err": "Something went wrong", "toast.loading": "Loading demo documents…",
+  },
+  tr: {
+    "tab.ask": "Sor", "tab.library": "Belgeler", "tab.about": "Nasıl çalışır",
+    "hero.title": "Belgelerinize sorun. Her cevabın <em>dayanağını</em> görün.",
+    "hero.sub": "Dayanak kendi dosyalarınızdan cevap verir, her cümlenin hangi paragraftan geldiğini gösterir ve destekleyemediği her iddiayı işaretler.",
+    "ask.ph": "Belgeleriniz hakkında bir soru sorun…", "ask.send": "gönder", "ask.nl": "yeni satır",
+    "mode.ext": "Alıntı", "hint.auto": "LLM varsa yazar, yoksa alıntılar", "hint.extractive": "Cümleleri aynen aktarır — LLM yok", "hint.llm": "Cevap yazar, sonra doğrular",
+    "start.title": "Ne öğrenmek istersiniz?", "start.sub": "Demo belgelerinde şu sorulardan birini deneyin:",
+    "start.noDocs": "Henüz belge yok", "start.noDocsSub": "Demo belgelerini yükleyin veya kendi PDF, DOCX, MD ya da TXT dosyalarınızı ekleyin.",
+    "start.loadDemo": "Demo belgelerini yükle", "start.upload": "Dosya yükle",
+    "q1": "Beş yıldan fazla kıdemi olan biri kaç gün yıllık izin alır?", "q2": "Güvenlik olayını ne kadar sürede bildirmem gerekiyor?",
+    "q3": "50.000 TL'lik bir alım için kaç teklif almalıyım?", "q4": "İş seyahatinde günlük yemek limiti ne kadar?",
+    "q5": "Şirketin yemekhane menüsü nerede yayınlanır?",
+    "a.grounded": "Dayanak", "a.verified": "{ok}/{n} cümle doğrulandı", "a.abstain": "Belgelerde dayanak bulunamadı",
+    "a.abstainSub": "Tahmin yürütmek yerine, Dayanak bu konunun belgelerde olmadığını söyler.", "a.unsupported": "Doğrulanamadı: {r}",
+    "src.title": "Kaynaklar", "src.empty": "Seçili cevabın kaynakları burada görünecek.", "src.unused": "bulundu, kullanılmadı",
+    "src.checks": "Cümle kontrolleri", "src.page": "s.",
+    "lib.title": "Bilgi <em>bankanız</em>.", "lib.sub": "Her şey kendi bilgisayarınızda kalır. Belgeler paragraflara bölünür ve aranabilir hale getirilir.",
+    "lib.drop": "PDF, DOCX, MD veya TXT dosyalarını bırakın", "lib.dropHint": "ya da tıklayıp seçin · dosya başına 20 MB",
+    "lib.docs": "belge", "lib.chunks": "paragraf", "lib.words": "kelime", "lib.vec": "Vektör araması açık", "lib.novec": "Anahtar kelime araması (BM25)",
+    "lib.view": "Paragraflar", "lib.del": "Sil", "lib.demo": "Demo belgelerini yükle", "lib.empty": "Henüz belge yok.",
+    "lib.confirm": "{name} silinsin mi?", "lib.added": "{n} belge eklendi", "lib.dup": "Zaten yüklü", "lib.deleted": "Belge silindi",
+    "lib.passages": "{n} paragraf", "lib.wordsN": "{n} kelime",
+    "about.title": "Bul. Cevapla. <em>Doğrula.</em>",
+    "about.sub": "Dayanak, bir iddianın dayandığı kanıt demektir. Buradaki her cevabın bir dayanağı olmak zorunda.",
+    "about.s1": "İndeksle", "about.s1d": "Dosyalar başlıklara duyarlı, hafifçe örtüşen paragraflara bölünür; sınıra düşen bilgi kaybolmaz.",
+    "about.s2": "Bul", "about.s2d": "Türkçeye uyarlanmış BM25 anahtar kelime araması; embedding modeli varsa vektör aramasıyla RRF yöntemiyle birleştirilir.",
+    "about.s3": "Cevapla", "about.s3d": "LLM yalnızca numaralı paragraflardan cevap verir; LLM yoksa en uygun cümleler aynen alıntılanır.",
+    "about.s4": "Doğrula", "about.s4d": "Her cümle gösterdiği paragrafla karşılaştırılır. Desteklenmeyen iddialar ve kaynakta geçmeyen sayılar işaretlenir.",
+    "about.features": "Neler sunar", "about.eval": "Varsayım değil, ölçüm", "about.evalSub": "Demo belgeleri üzerinde 22 soru; 4'ünün cevabı belgelerde yok (alıntı modu, LLM'siz).",
+    "about.api": "Koddan kullanın", "about.apiSub": "Bu arayüzdeki her şey bir REST çağrısıdır. Etkileşimli dokümantasyon: <a href='/docs'>/docs</a>.",
+    "f.cite": "Cümle düzeyinde kaynak", "f.citeD": "Her iddia geldiği paragrafa bağlanır.",
+    "f.verify": "Halüsinasyon koruması", "f.verifyD": "Desteklenmeyen cümleler ve uydurulan sayılar kırmızıyla işaretlenir.",
+    "f.abstain": "Bilmediğini bilir", "f.abstainD": "Belgelerde olmayan sorulara dürüstçe \"dayanak bulunamadı\" der.",
+    "f.tr": "Türkçe için tasarlandı", "f.trD": "Türkçe büyük/küçük harf ve kök alma, ölçüm setiyle ayarlandı.",
+    "f.offline": "LLM olmadan da çalışır", "f.offlineD": "Alıntı modu hiçbir model gerektirmez. Yazılı cevap için Ollama ekleyin.",
+    "f.private": "Varsayılan olarak gizli", "f.privateD": "Yerelde çalışır; belgeler tek bir SQLite dosyasında durur.",
+    "e.metric": "Ölçüt", "e.value": "Sonuç", "e.means": "Anlamı",
+    "e.hit": "Doğru belge ilk sırada", "e.fact": "Beklenen bilgi cevapta var", "e.abst": "Cevapsız soruları doğru reddetti",
+    "e.false": "Cevaplı soruyu yanlışlıkla reddetti", "e.ground": "Cevap cümleleri kaynakla doğrulandı",
+    "w.title": "Dayanak'a hoş geldiniz", "w.sub": "Sorularınızı günlük dille sorun; doğrudan kendi belgelerinizden, kontrol edebileceğiniz cevaplar alın.",
+    "w.hide": "Bunu bir daha gösterme", "w.own": "Kendi dosyalarımı kullan", "w.demo": "Demo belgeleriyle dene",
+    "llm.on": "LLM hazır", "llm.off": "Alıntı modu", "pop.on": "{h} adresine bağlı. Model: {m}.", "pop.off": "{h} adresinde LLM yok. Dayanak belgelerinizden alıntı yaparak cevap verir. Yazılı cevaplar için Ollama'yı kurup şunu çalıştırın:",
+    "pop.vec": "Anlamsal arama için ayrıca:", "pop.edit": "Ya da .env dosyasında başka bir sağlayıcı tanımlayın.",
+    "toast.err": "Bir hata oluştu", "toast.loading": "Demo belgeleri yükleniyor…",
+  },
+};
+
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("dayanak." + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("dayanak." + k, JSON.stringify(v)); } catch { /* storage unavailable */ } },
+};
+let lang = store.get("lang", (navigator.language || "en").toLowerCase().startsWith("tr") ? "tr" : "en");
+const t = (k, v = {}) => (I18N[lang][k] ?? I18N.en[k] ?? k).replace(/\{(\w+)\}/g, (_, x) => v[x] ?? "");
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const icon = (id) => `<svg><use href="#i-${id}"/></svg>`;
+const fmt = (n) => Number(n).toLocaleString(lang === "tr" ? "tr-TR" : "en-US");
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, opts);
+  if (res.status === 204) return null;
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) { const e = new Error(typeof data.detail === "string" ? data.detail : res.statusText); e.status = res.status; throw e; }
+  return data;
+}
+let toastTimer;
+function toast(msg) { const el = $("#toast"); el.textContent = msg; el.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove("show"), 2400); }
+
+/* ---------- theme / lang / tabs ---------- */
+function setTheme(th) { document.documentElement.dataset.theme = th; $("#themeBtn").innerHTML = icon(th === "dark" ? "sun" : "moon"); store.set("theme", th); }
+setTheme(store.get("theme", matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"));
+$("#themeBtn").onclick = () => setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+$("#langBtn").onclick = () => { lang = lang === "tr" ? "en" : "tr"; store.set("lang", lang); applyI18n(); };
+function movePill() { const on = $(".tabs button[aria-selected=true]"), p = $(".tabs .pill"); if (on) { p.style.left = on.offsetLeft + "px"; p.style.width = on.offsetWidth + "px"; } }
+function show(view) {
+  $$(".tabs button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.view === view)));
+  $$(".view").forEach((v) => v.classList.toggle("active", v.id === "view-" + view));
+  movePill(); scrollTo({ top: 0, behavior: "smooth" });
+  if (view === "library") loadDocs();
+  if (view === "ask") setTimeout(() => $("#q").focus(), 50);
+}
+$$(".tabs button").forEach((b) => (b.onclick = () => show(b.dataset.view)));
+addEventListener("resize", movePill);
+
+function applyI18n() {
+  document.documentElement.lang = lang;
+  $$("[data-i18n]").forEach((el) => (el.textContent = t(el.dataset.i18n)));
+  $$("[data-i18n-html]").forEach((el) => (el.innerHTML = t(el.dataset.i18nHtml)));
+  $$("[data-i18n-placeholder]").forEach((el) => (el.placeholder = t(el.dataset.i18nPlaceholder)));
+  $("#langBtn").textContent = lang === "tr" ? "EN" : "TR";
+  $("#modeHint").textContent = t("hint." + mode);
+  renderStatus(); renderAbout(); renderMessages(); renderDocs(); movePill();
+}
+
+/* ---------- status ---------- */
+let status = null;
+async function loadStatus() { try { status = await api("/status"); } catch { status = null; } renderStatus(); renderMessages(); }
+function renderStatus() {
+  if (!status) return;
+  $("#ver").textContent = "v" + status.version;
+  const s = status.llm;
+  $("#statusDot").className = "dot " + (s.reachable ? "on" : "off");
+  $("#statusLabel").textContent = s.reachable ? `${t("llm.on")} · ${s.model}` : t("llm.off");
+  $("#statusPop").innerHTML = s.reachable
+    ? `<b>${esc(s.model)}</b><p>${esc(t("pop.on", { h: s.host, m: s.model }))}</p>${status.vector_search ? "" : `<p>${t("pop.vec")}</p><p><code>ollama pull ${esc(s.embed_model)}</code></p>`}`
+    : `<b>${t("llm.off")}</b><p>${esc(t("pop.off", { h: s.host }))}</p><p><code>ollama pull ${esc(s.model)}</code></p><p>${t("pop.vec")}</p><p><code>ollama pull ${esc(s.embed_model)}</code></p><p>${t("pop.edit")}</p>`;
+}
+$("#statusBtn").onclick = (e) => { e.stopPropagation(); $("#statusPop").classList.toggle("open"); };
+document.addEventListener("click", (e) => { if (!e.target.closest("#statusPop")) $("#statusPop").classList.remove("open"); });
+
+/* ---------- ask ---------- */
+let mode = store.get("mode", "auto"), thread = [], activeIdx = -1, activeCite = null, busy = false;
+$$("#mode button").forEach((b) => b.classList.toggle("on", b.dataset.v === mode));
+$("#mode").onclick = (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  mode = b.dataset.v; store.set("mode", mode);
+  $$("#mode button").forEach((x) => x.classList.toggle("on", x === b)); $("#modeHint").textContent = t("hint." + mode);
+};
+const qEl = $("#q");
+qEl.addEventListener("input", () => { qEl.style.height = "auto"; qEl.style.height = Math.min(qEl.scrollHeight, 160) + "px"; });
+qEl.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(); } });
+$("#send").onclick = () => ask();
+
+async function ask(text) {
+  const question = (text ?? qEl.value).trim();
+  if (!question || busy) return;
+  if (status && status.documents === 0) { toast(t("start.noDocs")); return; }
+  busy = true; $("#send").disabled = true; qEl.value = ""; qEl.style.height = "auto";
+  thread.push({ question, answer: null }); activeIdx = thread.length - 1; activeCite = null;
+  renderMessages(); renderSources();
+  try {
+    const a = await api("/ask", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question, mode }) });
+    thread[thread.length - 1].answer = a;
+  } catch (err) {
+    thread[thread.length - 1].answer = { error: err.message };
+  } finally {
+    busy = false; $("#send").disabled = false; renderMessages(); renderSources(); qEl.focus();
+  }
+}
+
+function meterHtml(a) {
+  const g = a.groundedness ?? 0, n = a.sentences.length, ok = a.sentences.filter((s) => s.supported).length;
+  const cls = g >= 0.99 ? "ok" : g >= 0.5 ? "mid" : "bad";
+  return `<span class="meter ${cls}">${t("a.grounded")} %${Math.round(g * 100)}<span class="track"><i style="width:${g * 100}%"></i></span></span><span>${t("a.verified", { ok, n })}</span>`;
+}
+
+function answerBody(a) {
+  if (a.error) return `<div class="warnline">${icon("alert")}<span>${esc(a.error)}</span></div>`;
+  if (a.abstained) return `<div class="abstain"><span class="ic">${icon("alert")}</span><div><b>${t("a.abstain")}</b><small>${t("a.abstainSub")}</small></div></div>`;
+  const parts = a.sentences.map((s, i) => {
+    const chips = s.cites.map((n) => `<button class="cite" data-n="${n}">${n}</button>`).join("");
+    const title = s.supported ? "" : ` title="${esc(t("a.unsupported", { r: s.reason || "" }))}"`;
+    // son kelime + kaynak numaraları birlikte kalsın (satır başına kaymasın)
+    const cut = s.text.lastIndexOf(" "), head = cut > 0 ? s.text.slice(0, cut + 1) : "", tail = s.text.slice(cut + 1);
+    return `<span class="sent ${s.supported ? "" : "bad"}" data-s="${i}"${title}>${esc(head)}<span style="white-space:nowrap">${esc(tail)}${chips}</span></span>`;
+  });
+  return `<div class="body">${parts.join(" ")}</div>`;
+}
+
+function renderMessages() {
+  const box = $("#messages");
+  if (!thread.length) {
+    const noDocs = status && status.documents === 0;
+    box.innerHTML = noDocs
+      ? `<div class="welcome-q"><div class="orb">${icon("book")}</div><h3>${t("start.noDocs")}</h3><p>${t("start.noDocsSub")}</p>
+         <div class="suggest"><button class="btn btn-primary" style="margin:0" id="sDemo">${icon("sparkle")}${t("start.loadDemo")}</button>
+         <button class="btn btn-ghost" id="sUp">${icon("upload")}${t("start.upload")}</button></div></div>`
+      : `<div class="welcome-q"><div class="orb">${icon("chat")}</div><h3>${t("start.title")}</h3><p>${t("start.sub")}</p>
+         <div class="suggest">${["q1", "q2", "q3", "q4", "q5"].map((k) => `<button class="chip" data-q="${esc(t(k))}">${esc(t(k))}</button>`).join("")}</div></div>`;
+    $$("[data-q]", box).forEach((b) => (b.onclick = () => ask(b.dataset.q)));
+    if ($("#sDemo")) $("#sDemo").onclick = loadDemo;
+    if ($("#sUp")) $("#sUp").onclick = () => show("library");
+    return;
+  }
+  box.innerHTML = thread.map((m, i) => {
+    let h = `<div class="msg-q">${esc(m.question)}</div>`;
+    if (!m.answer) h += `<div class="msg-a"><span class="typing"><i></i><i></i><i></i></span></div>`;
+    else {
+      const a = m.answer;
+      h += `<div class="msg-a ${i === activeIdx ? "active" : ""}" data-i="${i}">${answerBody(a)}`;
+      if (!a.error) {
+        h += `<div class="foot">${a.abstained ? "" : meterHtml(a)}<span class="tag">${a.mode === "llm" ? "LLM" : t("mode.ext")}</span><span class="tag">${a.elapsed_ms} ms</span></div>`;
+        const extra = a.warnings.filter((w) => !/cümlenin dayanağı/.test(w));
+        if (extra.length) h += extra.map((w) => `<div class="warnline">${icon("alert")}<span>${esc(w)}</span></div>`).join("");
+      }
+      h += `</div>`;
+    }
+    return h;
+  }).join("");
+  $$(".msg-a[data-i]", box).forEach((el) => (el.onclick = (e) => {
+    activeIdx = +el.dataset.i;
+    const c = e.target.closest(".cite"); activeCite = c ? +c.dataset.n : null;
+    $$(".msg-a", box).forEach((x) => x.classList.toggle("active", x === el));
+    $$(".cite", box).forEach((x) => x.classList.toggle("on", x === c));
+    renderSources();
+  }));
+  box.scrollTop = box.scrollHeight;
+}
+
+// Kaynak paragrafta, cevap cümleleriyle örtüşen cümleleri vurgula
+const trLower = (s) => s.replace(/I/g, "ı").replace(/İ/g, "i").toLowerCase();
+const toks = (s) => new Set((trLower(s).match(/[0-9]+(?:[.,][0-9]+)*|[a-zçğıöşüâîû]+/g) || []).filter((w) => w.length > 2).map((w) => (/^\d/.test(w) ? w : w.slice(0, 6))));
+function highlight(text, answerSentences) {
+  if (!answerSentences.length) return esc(text);
+  const targets = answerSentences.map(toks);
+  return text.split(/(?<=[.!?])\s+|\n/).map((s) => {
+    const st = toks(s); if (!st.size) return esc(s);
+    const best = Math.max(...targets.map((tt) => [...st].filter((x) => tt.has(x)).length / st.size));
+    return best >= 0.45 ? `<mark>${esc(s)}</mark>` : esc(s);
+  }).join(" ");
+}
+
+function renderSources() {
+  const box = $("#sources"), m = thread[activeIdx], a = m?.answer;
+  let h = `<h2>${t("src.title")}</h2>`;
+  if (!a || a.error || a.abstained || !a.citations.length) { box.innerHTML = h + `<div class="empty-src">${t("src.empty")}</div>`; return; }
+  const bad = a.sentences.filter((s) => !s.supported);
+  if (bad.length) h += `<div class="checklist"><b>${t("src.checks")}</b><ol>${a.sentences.map((s) => `<li class="${s.supported ? "" : "bad"}">${s.supported ? "✓" : "✗"} ${esc(s.text.slice(0, 90))}${s.text.length > 90 ? "…" : ""}${s.reason ? `<small>${esc(s.reason)}</small>` : ""}</li>`).join("")}</ol></div>`;
+  const used = new Set(a.sentences.flatMap((s) => s.cites));
+  const order = [...a.citations].sort((x, y) => (used.has(y.n) - used.has(x.n)) || x.n - y.n);
+  h += order.map((c) => {
+    const sents = a.sentences.filter((s) => s.cites.includes(c.n)).map((s) => s.text);
+    return `<div class="src ${activeCite === c.n ? "on" : ""} ${used.has(c.n) ? "" : "unused"}" id="src-${c.n}">
+      <div class="src-head"><span class="src-n">${c.n}</span><div class="src-title"><b>${esc(c.doc_name)}</b>
+      <small>${esc(c.heading || "")}${c.heading ? " · " : ""}${t("src.page")} ${c.page}${used.has(c.n) ? "" : " · " + t("src.unused")}</small></div></div>
+      <p>${highlight(c.text, sents)}</p></div>`;
+  }).join("");
+  box.innerHTML = h;
+  if (activeCite) $("#src-" + activeCite)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+/* ---------- library ---------- */
+let docs = [];
+async function loadDocs() { try { docs = await api("/documents"); } catch { docs = []; } renderDocs(); }
+function renderDocs() {
+  const total = docs.reduce((a, d) => ({ c: a.c + d.chunks, w: a.w + d.words }), { c: 0, w: 0 });
+  $("#libStats").innerHTML = `<span class="tag">${docs.length} ${t("lib.docs")}</span><span class="tag">${fmt(total.c)} ${t("lib.chunks")}</span><span class="tag">${fmt(total.w)} ${t("lib.words")}</span>
+    <span class="tag">${status?.vector_search ? t("lib.vec") : t("lib.novec")}</span>
+    ${docs.length ? "" : `<button class="btn btn-ghost" id="libDemo" style="margin-left:auto">${icon("sparkle")}${t("lib.demo")}</button>`}`;
+  if ($("#libDemo")) $("#libDemo").onclick = loadDemo;
+  $("#docs").innerHTML = docs.map((d, i) => {
+    const ext = (d.name.split(".").pop() || "").toLowerCase();
+    return `<div class="glass doc" style="animation-delay:${i * 0.04}s"><div class="doc-top"><span class="doc-ic ${ext}">${esc(ext.toUpperCase())}</span><div class="doc-name">${esc(d.name)}</div></div>
+      <div class="doc-meta"><span class="tag">${t("lib.passages", { n: d.chunks })}</span><span class="tag">${t("lib.wordsN", { n: fmt(d.words) })}</span></div>
+      <div class="doc-actions"><button class="btn btn-ghost" data-view-doc="${d.id}">${icon("eye")}${t("lib.view")}</button><button class="btn btn-ghost" data-del="${d.id}">${icon("trash")}${t("lib.del")}</button></div></div>`;
+  }).join("");
+  $$("[data-del]").forEach((b) => (b.onclick = async () => {
+    const d = docs.find((x) => x.id === +b.dataset.del);
+    if (!confirm(t("lib.confirm", { name: d.name }))) return;
+    await api(`/documents/${d.id}`, { method: "DELETE" }); toast(t("lib.deleted")); await loadDocs(); loadStatus();
+  }));
+  $$("[data-view-doc]").forEach((b) => (b.onclick = () => openDoc(+b.dataset.viewDoc)));
+}
+async function openDoc(id) {
+  const d = docs.find((x) => x.id === id), chunks = await api(`/documents/${id}/chunks`);
+  $("#drawerBody").innerHTML = `<h3>${esc(d.name)}</h3><span class="tag">${t("lib.passages", { n: chunks.length })}</span>` +
+    chunks.map((c, i) => `<div class="chunk"><small>#${i + 1}${c.heading ? " · " + esc(c.heading) : ""} · ${t("src.page")} ${c.page}</small><p>${esc(c.text)}</p></div>`).join("");
+  $("#drawer").classList.add("open");
+}
+$("#drawerClose").onclick = () => $("#drawer").classList.remove("open");
+
+function wireDrop(zone, input, onFiles) {
+  zone.onclick = () => input.click();
+  zone.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } };
+  input.onchange = () => { if (input.files.length) onFiles([...input.files]); input.value = ""; };
+  ["dragenter", "dragover"].forEach((ev) => zone.addEventListener(ev, (e) => { e.preventDefault(); zone.classList.add("over"); }));
+  ["dragleave", "drop"].forEach((ev) => zone.addEventListener(ev, () => zone.classList.remove("over")));
+  zone.addEventListener("drop", (e) => { e.preventDefault(); if (e.dataTransfer.files.length) onFiles([...e.dataTransfer.files]); });
+}
+wireDrop($("#drop"), $("#files"), async (files) => {
+  let added = 0;
+  for (const f of files) {
+    const fd = new FormData(); fd.append("files", f);
+    try { await api("/documents", { method: "POST", body: fd }); added++; }
+    catch (e) { toast(e.status === 409 ? `${f.name}: ${t("lib.dup")}` : `${f.name}: ${e.message}`); }
+  }
+  if (added) toast(t("lib.added", { n: added }));
+  await loadDocs(); loadStatus();
+});
+async function loadDemo() {
+  toast(t("toast.loading"));
+  try { await api("/documents/samples", { method: "POST" }); } catch (e) { toast(e.message); }
+  await loadStatus(); await loadDocs(); show("ask");
+}
+
+/* ---------- about ---------- */
+const FEATURES = [["hash", "cite"], ["shield", "verify"], ["alert", "abstain"], ["search", "tr"], ["layers", "offline"], ["lock", "private"]];
+const EVAL = [["hit", "100%"], ["fact", "100%"], ["abst", "100%"], ["false", "0%"], ["ground", "100%"]];
+function renderAbout() {
+  $("#steps").innerHTML = [1, 2, 3, 4].map((n) => `<div class="glass step"><div class="num">${n}</div><h3>${t("about.s" + n)}</h3><p>${t("about.s" + n + "d")}</p></div>`).join("");
+  const feat = (list) => list.map(([ic, k]) => `<div class="feature">${icon(ic)}<b>${t("f." + k)}</b><p>${t("f." + k + "D")}</p></div>`).join("");
+  $("#features").innerHTML = feat(FEATURES); $("#wFeatures").innerHTML = feat(FEATURES.slice(0, 4));
+  $("#evalTable").innerHTML = `<thead><tr><th>${t("e.metric")}</th><th>${t("e.value")}</th></tr></thead><tbody>${EVAL.map(([k, v]) => `<tr><td>${t("e." + k)}</td><td><b>${v}</b></td></tr>`).join("")}</tbody>`;
+  const o = location.origin;
+  $("#apiSnippet").textContent = `# ${lang === "tr" ? "Belge yükle" : "Upload"}
+curl -F "files=@yonetmelik.pdf" ${o}/documents
+
+# ${lang === "tr" ? "Soru sor" : "Ask"}
+curl -X POST ${o}/ask -H "Content-Type: application/json" \\
+     -d '{"question": "Yıllık izin kaç gün?", "mode": "auto"}'
+
+# Python
+import httpx
+a = httpx.post("${o}/ask", json={"question": "Parola kaç karakter olmalı?"}).json()
+print(a["answer"], a["groundedness"])`;
+}
+
+/* ---------- welcome ---------- */
+function openWelcome() { $("#welcome").classList.add("open"); }
+function closeWelcome() { if (!$("#welcome").classList.contains("open")) return; $("#welcome").classList.remove("open"); if ($("#wHide").checked) store.set("welcomed", true); }
+$("#helpBtn").onclick = openWelcome; $("#wClose").onclick = closeWelcome;
+$("#welcome").onclick = (e) => { if (e.target.id === "welcome") closeWelcome(); };
+$("#wDemo").onclick = () => { closeWelcome(); loadDemo(); };
+$("#wOwn").onclick = () => { closeWelcome(); show("library"); };
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closeWelcome(); $("#drawer").classList.remove("open"); } });
+
+/* ---------- boot ---------- */
+applyI18n();
+loadStatus().then(loadDocs);
+if (!store.get("welcomed", false)) setTimeout(openWelcome, 350);
+</script>
+</body>
+</html>
