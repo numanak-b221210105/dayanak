@@ -1,0 +1,17 @@
+{
+  "name": "Dayanak — Turkish RAG with citations",
+  "short_name": "Dayanak",
+  "description": "Ask your documents in Turkish and get answers with sentence-level citations, running fully in your browser.",
+  "package": "dayanak",
+  "module": "dayanak.api:app",
+  "index": "src/dayanak/static/index.html",
+  "routes": ["/status", "/health", "/documents", "/search", "/ask", "/feedback", "/insights", "/formats"],
+  "requirements": ["fastapi==0.163.1", "pydantic==2.14.3", "python-multipart==0.0.34", "pypdf==7.1.0"],
+  "files": {"samples": "/lib/python3.14/samples"},
+  "env": {"DAYANAK_DATA_DIR": "/home/pyodide/data", "DAYANAK_LLM_BASE_URL": "http://llm.unavailable-in-browser"},
+  "persist": "/home/pyodide/data",
+  "sounds": "app",
+  "sound_button_before": "#themeBtn",
+  "theme_color": "#a8461f",
+  "background_color": "#f6f3ec"
+}

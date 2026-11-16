@@ -431,6 +431,7 @@ body { background: radial-gradient(1100px 620px at 92% -8%, var(--glow1), transp
 .side-k:hover { border-color: var(--ink-3); color: var(--ink-2); box-shadow: var(--shadow); }
 .side-k svg { width: 15px; height: 15px; flex: none; } .side-k span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .side-k kbd { margin-left: auto; }
 kbd { white-space: nowrap; }
+@media (hover: none) and (pointer: coarse) { .side-new kbd, .side-k kbd, .composer-wrap .hint { display: none; } textarea, input { font-size: 16px; } }
 nav.menu { position: relative; }
 nav.menu button[aria-current="true"]::before { display: none; }
 nav.menu button[aria-current="true"] { background: linear-gradient(90deg, var(--accent-soft), transparent 90%); }
@@ -1128,6 +1129,7 @@ async function ask(text) {
   } catch (e) { a = { error: e.message }; }
   await steps.finish();
   msg.a = a; msg.fresh = true;
+  window.pybridge?.sound(a.error ? "err" : "ok");
   busy = false; $("#send").disabled = false; saveChats(); renderThread(); qEl.focus(); loadStatus();
 }
 
@@ -1341,7 +1343,7 @@ async function upload(files) {
     catch (e) { toast(e.status === 409 ? `${f.name}: ${t("docs.dup")}` : `${f.name}: ${e.message}`, "alert"); await sleep(1200); }
   }
   $("#prog").style.width = "100%"; await sleep(250); zone.classList.remove("busy"); $("#prog").style.width = "0";
-  if (n) toast(t("docs.added_n", { n }));
+  if (n) { toast(t("docs.added_n", { n })); window.pybridge?.sound("ok"); }
   await loadDocs(); loadStatus();
 }
 async function loadDemo() {

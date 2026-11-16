@@ -24,7 +24,10 @@ def load(name: str, data: bytes) -> list[tuple[int, str]]:
         reader = PdfReader(BytesIO(data))
         return [(i, page.extract_text() or "") for i, page in enumerate(reader.pages, 1)]
     if lower.endswith(".docx"):
-        import docx
+        try:
+            import docx
+        except ImportError as e:  # e.g. the in-browser build, which has no lxml
+            raise UnsupportedFile(f"{name}: .docx bu ortamda okunamıyor; PDF, MD veya TXT deneyin") from e
 
         document = docx.Document(BytesIO(data))
         lines = []

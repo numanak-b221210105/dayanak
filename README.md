@@ -10,6 +10,8 @@ Ask questions about your own PDFs, Word files and notes. Dayanak finds the relev
 
 > *Dayanak* is Turkish for "basis" or "grounds": the evidence a claim rests on.
 
+**▶ Try it: https://numanak-b221210105.github.io/dayanak/** (phone and desktop, installable, your documents stay on your device)
+
 ![Dayanak web UI](docs/screenshot.jpg)
 
 > 🇹🇷 **Türkçe özet:** Kendi belgelerinizden (PDF, DOCX, MD, TXT) soru-cevap yapan, her cümlenin kaynağını gösteren ve kaynakla desteklenmeyen iddiaları işaretleyen bir RAG uygulaması. Türkçe için ayarlanmış anahtar kelime araması ve isteğe bağlı vektör araması kullanır. LLM olmadan da alıntı moduyla çalışır.
@@ -88,6 +90,21 @@ Conversations persist in the browser; the query log lives in the same SQLite fil
 | **Abstention as a feature** | Retrieval score and query coverage thresholds decide when the documents simply do not contain the answer. |
 | **Single SQLite file, SHA-256 dedup** | No database server; the same file is never indexed twice. |
 | **Provider-agnostic LLM** | Any OpenAI-compatible endpoint: local Ollama (default), OpenAI, Gemini, Groq. |
+
+## Web version (runs in your browser)
+
+The live demo has no server. The **same Python package** (`src/dayanak`, FastAPI app included) runs inside the browser with [Pyodide](https://pyodide.org), CPython compiled to WebAssembly:
+
+```
+page ── fetch("/ask") ──► Web Worker ──► Pyodide ──► dayanak.api:app (ASGI) ──► SQLite on IndexedDB
+```
+
+- `web/pybridge.js` routes the page's API calls to a Web Worker; `web/py-worker.mjs` hands them to the FastAPI app as ordinary ASGI requests.
+- The SQLite knowledge base lives in the browser's IndexedDB, so documents and insights survive a reload. Nothing is uploaded.
+- The Python runtime and all wheels (`pydantic-core` built for WebAssembly) are served from the same site and cached by a service worker: after the first visit (~17 MB) it works offline and can be installed on a phone or desktop.
+- **Limits:** answers use the extractive (quote) mode with BM25 search, which needs no model. LLM answers and vector search need a local install. `.docx` is not available in the browser build (`python-docx` needs `lxml`); PDF, Markdown and TXT work.
+
+Build it yourself: `python web/build.py`, then serve `site/` (for example `python -m http.server -d site`). GitHub Actions deploys it to Pages on every push.
 
 ## Quick start
 
