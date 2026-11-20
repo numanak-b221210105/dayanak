@@ -102,6 +102,7 @@ page ── fetch("/ask") ──► Web Worker ──► Pyodide ──► dayan
 - `web/pybridge.js` routes the page's API calls to a Web Worker; `web/py-worker.mjs` hands them to the FastAPI app as ordinary ASGI requests.
 - The SQLite knowledge base lives in the browser's IndexedDB, so documents and insights survive a reload. Nothing is uploaded.
 - The Python runtime and all wheels (`pydantic-core` built for WebAssembly) are served from the same site and cached by a service worker: after the first visit (~17 MB) it works offline and can be installed on a phone or desktop.
+- **On phones:** installable from the browser (Android shows an install button; on iPhone a one-time hint explains *Share → Add to Home Screen*, which also keeps the data, since Safari may clear site data that is not used for a week). Soft synthesized interface sounds follow the phone's silent switch and can be muted from the header.
 - **Limits:** answers use the extractive (quote) mode with BM25 search, which needs no model. LLM answers and vector search need a local install. `.docx` is not available in the browser build (`python-docx` needs `lxml`); PDF, Markdown and TXT work.
 
 Build it yourself: `python web/build.py`, then serve `site/` (for example `python -m http.server -d site`). GitHub Actions deploys it to Pages on every push.

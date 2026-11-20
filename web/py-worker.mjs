@@ -3,6 +3,7 @@
 import { loadPyodide } from "./pyodide/pyodide.mjs";
 
 let ready;
+let saving = Promise.resolve(); // IndexedDB writes, one at a time
 const post = (m) => self.postMessage(m);
 
 async function boot() {
@@ -108,7 +109,7 @@ self.onmessage = async (e) => {
     res.destroy?.();
     const buf = bytes.slice().buffer;
     post({ type: "response", id: m.id, status, headers, body: buf }, [buf]);
-    if (cfg.persist && m.method !== "GET") py.FS.syncfs(false, () => {});
+    if (cfg.persist && m.method !== "GET") saving = saving.then(() => new Promise((r) => py.FS.syncfs(false, () => r())));
   } catch (err) {
     post({ type: "response", id: m.id, status: 599, headers: [["content-type", "application/json"]], error: String(err?.message || err) });
   }
